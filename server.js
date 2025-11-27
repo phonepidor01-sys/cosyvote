@@ -27,9 +27,9 @@ app.post("/sendCode", async (req, res) => {
    const phoneNumber = req.body.phone;
    const client = new TelegramClient(new StringSession(""), apiId, apiHash, {
    connectionRetries: 5,
-   serverAddress: '149.154.167.99',  // DC5 IP
+    serverAddress: '149.154.167.99',  // DC1 Майами
     port: 443,
-    ipv6: false
+    dcIdOverride: 1
   });
 
    await client.connect();
